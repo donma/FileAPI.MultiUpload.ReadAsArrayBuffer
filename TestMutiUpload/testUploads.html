@@ -1,0 +1,71 @@
+﻿<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+    <title></title>
+
+    <script src="http://code.jquery.com/jquery-1.9.1.js"></script>
+    <script src="http://code.jquery.com/jquery-migrate-1.1.0.js"></script>
+</head>
+<body>
+
+    <input type="file" multiple="multiple" id="input_chooseFiles" data-id="fileUpload" />
+
+    <div id="div_Result"></div>
+
+    <script>
+        
+
+        //產生隨機檔名
+        //如果有特別需求可以改寫成從Server去取
+        function GetGUID() {
+            var res = '';
+            for (var i = 1; i <= 8; i++) {
+                res += Math.floor((1 + Math.random()) * 0x10000)
+                    .toString(16)
+                    .substring(1);
+            }
+            return res;
+        };
+
+
+        //將以上傳的append 到顯示結果的DIV
+        function ShowImage(filename) {
+            $('#div_Result').append("<img src='/images/" + filename + ".jpg' style='width:100px' />");
+        }
+
+        //透過AJAX POST 到upload.ashx
+        function SendFileToServer(filename, filecontent) {
+            $.ajax({
+                type: "POST",
+                url: "/upload.ashx?filename=" + filename,
+                dataType: 'text',
+                cache: false,
+                processData: false,
+                data: filecontent,
+                success: function (data) {
+                    ShowImage(data);
+                }
+            });
+            
+        }
+
+
+
+        $('#input_chooseFiles').change(function (evt) {
+            if (evt.target.files.length > 0) {
+                for (var i = 0; i < this.files.length; i++) {
+                    var file = this.files[i];
+                    var reader = new window.FileReader();
+                    reader.onload = function (rResult) {
+                        var filename = GetGUID();
+                        SendFileToServer(filename, rResult.target.result);
+                    };
+                    reader.readAsArrayBuffer(file);
+                };
+            }
+        });
+
+    </script>
+
+</body>
+</html>
